@@ -1,0 +1,76 @@
+
+1. SimonSlays::SimonSlays()
+	> Constructor of class SimonSlays. 
+
+	1 Calls the constructors of Gtk::Widgets on which it passes parameters necessary for:
+		loading of images,
+		initialization of Gtk::Labels,
+		button labels, 
+		orientation of boxes, and
+		variable values needed by the timeout functions used.
+	2 Sets the window's properties: default size, border width, initial position, icon and title.
+	3 Sets the margins of Gtk::Box statBox and Gtk::Box menuBox.
+	4 Pack starts other boxes to Gtk::Box bigBox and their children to themselves.
+	5 Connects Gtk::Button quitButton and Gtk::Button resetButton to signal handlers void SimonSlays::on_button_quit(); and void SimonSlays::on_button_reset();
+	6 Calls void SimonSlays::resetGame(); to start a new game.
+
+2. SimonSlays::~SimonSlays()
+	> Destructor of class SimonSlays.
+
+3. void SimonSlays::resetGame()
+	> Sets game conditions necessary to start a new game.
+
+	1 Initializes game variable int level to default value 0.
+	2 Reads the initial value for int hs when score.txt file exists.
+	3 Calls void SimonSlays::show_entry_dialog() to fetch player name and void SimonSlays::startDialog() to signify start of new game.
+	4 Calls void SimonSlays::on_button_clicked() with -1 as parameter to start game.
+
+4. void SimonSlays::on_button_clicked(int n)
+	> Signal handler for Gtk::Button gameButton[] and primary handler for the actual game.
+ 	* PARAMETER int n:
+		The integer pertaining to the index of the button clicked in Gtk::Button gameButton[] IF user clicked a button.
+		-1 IF AND ONLY IF function is called within code i.e. done to start the game.
+
+	1 Passes int n to void SimonSlays::slay() which animates the button's image to signify click.
+	2 [SIMON'S TURN] IF list<int> tempList is empty:
+		Buttons are made insensitive to prevent user interaction during the flashing of latest sequence.
+		flashing of sequence is made possible by scheduling a timeout function bool SimonSlays::simonMove().
+	  [PLAYER'S TURN] ELSE:
+		tests if user's move is correct (or if parameter int n is equal to tempList.begin())
+		correct move leads to list<int> simonsList.pop_front();
+		wrong move leads to updating high score file (score.txt) if necessary, and running the local obj Gtk::MessageDialog endDialog();
+
+5. bool SimonSlays::simonMove(std::list<int>& someList)
+	> Mimics Simon's (CPU) every move for each round.
+	> Scheduled to be called every unsigned int interval milliseconds.
+
+	* PARAMETER list<int>& someList:
+		A mutable list that contains the current sequence of Simon's moves.
+
+	1 IF list<int>& someList is empty:
+		Buttons are made sensitive to make way for user interaction.
+		returns false to unschedule self.
+	  ELSE:
+		Passes first element of list<int>& someList to void SimonSlays::slay() which animates the button's image to signify Simon's move.
+		Removes first element of list<int>& someList.
+
+6. void SimonSlays::slay(int n)
+	> Animates the button images and schedules bool SimonSlays::on_time_out(int i, int j)
+	
+ 	* PARAMETER int n:
+		Shall contain index of the button clicked in Gtk::Button gameButton[] IF user clicked a button.
+
+	1 Sets the image gameButton[n] to its corresponding clicked version then calls bool SimonSlays::on_time_out()
+	  with int timer_number and int n as parameter.
+
+7. bool SimonSlays::on_time_out(int n, int i)
+	> Scheduled for one-time call with a duration of int timeout_value, 250 milliseconds.
+	> Changes button images from clicked version to default version.
+
+	* PARAMETER int n:
+		Index of the timer in std::map<int, int> counters.
+	* PARAMETER int i:
+		Index of the button clicked in Gtk::Button gameButton[].
+
+	1 On first call, sets button images to default and returns false thereby unscheduling self.
+	2 If not first call, return true.
